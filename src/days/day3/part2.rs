@@ -2,14 +2,12 @@ use std::iter::Peekable;
 
 pub struct Program<I: Iterator<Item = char>> {
     data: Peekable<I>,
-    do_command: bool,
 }
 
 impl<I: Iterator<Item = char>> Program<I> {
     pub fn new(data: I) -> Program<I> {
         Program {
             data: data.peekable(),
-            do_command: true,
         }
     }
 
@@ -113,7 +111,6 @@ impl<I: Iterator<Item = char>> Program<I> {
                         && self.data.next() == Some('(')
                         && self.data.next() == Some(')')
                     {
-                        self.do_command = true;
                         return true;
                     }
                 }
