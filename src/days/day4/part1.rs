@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 const DIRECTIONS: [(i64, i64); 8] = [
     (-1, 0),
     (1, 0),

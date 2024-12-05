@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub fn part2(path: &str) -> u32 {
     let input = std::fs::read_to_string(path).expect("File should be there");
     let chars: Vec<Vec<char>> = input
