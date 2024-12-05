@@ -59,18 +59,15 @@ pub fn part1(path: &str) -> i32 {
         }
     });
 
-    let valid_prints: Vec<Vec<i32>> = prints
+    let result: i32 = prints
         .into_iter()
         .filter(|print| {
             print
                 .iter()
                 .is_sorted_by(|a, b| ordering.comparator(**a, **b))
         })
-        .collect();
-
-    let result: i32 = valid_prints
-        .iter()
         .map(|print| print[print.len() / 2])
         .sum();
+
     result
 }

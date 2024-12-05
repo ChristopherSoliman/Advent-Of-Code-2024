@@ -109,7 +109,7 @@ pub fn part2(path: &str) -> i32 {
         }
     });
 
-    let reordered_prints: Vec<Vec<i32>> = prints
+    let result: i32 = prints
         .iter()
         .filter(|print| {
             !print
@@ -117,11 +117,8 @@ pub fn part2(path: &str) -> i32 {
                 .is_sorted_by(|a, b| ordering.comparator(**a, **b))
         })
         .map(|print| ordering.validate(&print))
-        .collect();
-
-    let result: i32 = reordered_prints
-        .iter()
         .map(|print| print[print.len() / 2])
         .sum();
+
     result
 }
