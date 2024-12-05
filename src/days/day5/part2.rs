@@ -68,15 +68,13 @@ impl Ordering {
                     }
                 }
                 result.push(page.clone());
-                self.ordering_set.iter().for_each(|(key, value)| {
-                    if key == page {
-                        value.iter().for_each(|v| {
-                            if let Some(d) = dependencies.get_mut(&v) {
-                                *d -= 1;
-                            }
-                        });
+                if let Some(v) = self.ordering_set.get(&page) {
+                    for value in v.iter() {
+                        if let Some(d) = dependencies.get_mut(&value) {
+                            *d -= 1;
+                        }
                     }
-                });
+                }
             })
         }
 
