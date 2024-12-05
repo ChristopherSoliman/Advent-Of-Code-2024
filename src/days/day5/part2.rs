@@ -21,27 +21,19 @@ impl Ordering {
         }
     }
 
-    pub fn is_print_valid(&self, print: &Vec<i32>) -> bool {
-        for i in 0..print.len() {
-            let order = self.ordering_set.get(&print[i]);
-            if let None = order {
-                continue;
-            }
-
-            let order = order.unwrap();
-            for j in 0..i {
-                if order.contains(&print[j]) {
+    pub fn comparator(&self, a: i32, b: i32) -> bool {
+        match self.ordering_set.get(&b) {
+            Some(v) => {
+                if v.contains(&a) {
                     return false;
                 }
             }
+            None => return true,
         }
         true
     }
 
-    pub fn validate_topololgical(&self, print: &Vec<i32>) -> Option<Vec<i32>> {
-        if self.is_print_valid(print) {
-            return None;
-        }
+    pub fn validate(&self, print: &Vec<i32>) -> Vec<i32> {
         let mut dependencies: HashMap<i32, usize> = HashMap::new();
 
         self.ordering_set
@@ -78,51 +70,20 @@ impl Ordering {
                 result.push(page.clone());
                 self.ordering_set.iter().for_each(|(key, value)| {
                     if key == page {
-                        value.iter().for_each(|v| match dependencies.entry(*v) {
-                            Entry::Occupied(mut e) => {
-                                *e.get_mut() -= 1;
+                        value.iter().for_each(|v| {
+                            if let Some(d) = dependencies.get_mut(&v) {
+                                *d -= 1;
                             }
-                            _ => {}
                         });
                     }
                 });
             })
         }
 
-        Some(result)
-    }
-
-    pub fn validate(&self, print: &Vec<i32>) -> Option<Vec<i32>> {
-        let mut new_print = print.clone();
-        let mut valid = true;
-
-        for i in 0..new_print.len() {
-            let order = self.ordering_set.get(&new_print[i]);
-            if let None = order {
-                continue;
-            }
-
-            let order = order.unwrap();
-            for j in 0..i {
-                if order.contains(&new_print[j]) {
-                    valid = false;
-                    new_print.swap(i, j);
-                    if let Some(p) = self.validate(&new_print) {
-                        new_print = p;
-                        break;
-                    } else {
-                        return Some(new_print);
-                    }
-                }
-            }
-        }
-
-        if !valid {
-            return Some(new_print);
-        }
-        None
+        result
     }
 }
+
 pub fn part2(path: &str) -> i32 {
     let input = std::fs::read_to_string(path).expect("File should be there");
     let mut prints: Vec<Vec<i32>> = Vec::new();
@@ -150,7 +111,12 @@ pub fn part2(path: &str) -> i32 {
 
     let reordered_prints: Vec<Vec<i32>> = prints
         .iter()
-        .filter_map(|print| ordering.validate_topololgical(&print))
+        .filter(|print| {
+            !print
+                .iter()
+                .is_sorted_by(|a, b| ordering.comparator(**a, **b))
+        })
+        .map(|print| ordering.validate(&print))
         .collect();
 
     let result: i32 = reordered_prints

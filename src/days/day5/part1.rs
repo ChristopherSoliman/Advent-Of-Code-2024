@@ -21,23 +21,19 @@ impl Ordering {
         }
     }
 
-    pub fn is_print_valid(&self, print: &Vec<i32>) -> bool {
-        for i in 0..print.len() {
-            let order = self.ordering_set.get(&print[i]);
-            if let None = order {
-                continue;
-            }
-
-            let order = order.unwrap();
-            for j in 0..i {
-                if order.contains(&print[j]) {
+    pub fn comparator(&self, a: i32, b: i32) -> bool {
+        match self.ordering_set.get(&b) {
+            Some(v) => {
+                if v.contains(&a) {
                     return false;
                 }
             }
+            None => return true,
         }
         true
     }
 }
+
 pub fn part1(path: &str) -> i32 {
     let input = std::fs::read_to_string(path).expect("File should be there");
     let mut prints: Vec<Vec<i32>> = Vec::new();
@@ -62,11 +58,13 @@ pub fn part1(path: &str) -> i32 {
             }
         }
     });
+
     let valid_prints: Vec<Vec<i32>> = prints
         .into_iter()
-        .filter_map(|print| match ordering.is_print_valid(&print) {
-            true => return Some(print),
-            false => return None,
+        .filter(|print| {
+            print
+                .iter()
+                .is_sorted_by(|a, b| ordering.comparator(**a, **b))
         })
         .collect();
 
