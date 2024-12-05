@@ -1,4 +1,4 @@
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Ordering {
@@ -11,20 +11,20 @@ impl Ordering {
     }
 
     pub fn add(&mut self, pair: Vec<i32>) {
-        match self.ordering_set.entry(pair[0]) {
-            Entry::Occupied(mut e) => {
-                e.get_mut().push(pair[1]);
+        match self.ordering_set.get_mut(&pair[0]) {
+            Some(e) => {
+                e.push(pair[1]);
             }
-            Entry::Vacant(e) => {
-                e.insert(vec![pair[1]]);
+            None => {
+                self.ordering_set.insert(pair[0], vec![pair[1]]);
             }
         }
     }
 
-    pub fn comparator(&self, a: i32, b: i32) -> bool {
-        match self.ordering_set.get(&b) {
+    pub fn comparator(&self, a: &i32, b: &i32) -> bool {
+        match self.ordering_set.get(b) {
             Some(v) => {
-                if v.contains(&a) {
+                if v.contains(a) {
                     return false;
                 }
             }
@@ -64,7 +64,7 @@ pub fn part1(path: &str) -> i32 {
         .filter(|print| {
             print
                 .iter()
-                .is_sorted_by(|a, b| ordering.comparator(**a, **b))
+                .is_sorted_by(|a, b| ordering.comparator(*a, *b))
         })
         .map(|print| print[print.len() / 2])
         .sum();
