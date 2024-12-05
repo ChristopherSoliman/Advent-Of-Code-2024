@@ -21,6 +21,77 @@ impl Ordering {
         }
     }
 
+    pub fn is_print_valid(&self, print: &Vec<i32>) -> bool {
+        for i in 0..print.len() {
+            let order = self.ordering_set.get(&print[i]);
+            if let None = order {
+                continue;
+            }
+
+            let order = order.unwrap();
+            for j in 0..i {
+                if order.contains(&print[j]) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    pub fn validate_topololgical(&self, print: &Vec<i32>) -> Option<Vec<i32>> {
+        if self.is_print_valid(print) {
+            return None;
+        }
+        let mut dependencies: HashMap<i32, usize> = HashMap::new();
+
+        self.ordering_set
+            .iter()
+            .filter(|(key, _)| print.contains(&key))
+            .for_each(|(_, value)| {
+                for v in value.iter() {
+                    if print.contains(&v) {
+                        match dependencies.entry(*v) {
+                            Entry::Occupied(mut e) => {
+                                *e.get_mut() += 1;
+                            }
+                            Entry::Vacant(e) => {
+                                e.insert(1);
+                            }
+                        }
+                    }
+                }
+            });
+
+        let mut result: Vec<i32> = Vec::new();
+
+        while result.len() < print.len() {
+            print.iter().for_each(|page| {
+                if result.contains(&page) {
+                    return;
+                }
+                let dependency = dependencies.get(&page);
+                if let Some(c) = dependency {
+                    if *c > 0 {
+                        return;
+                    }
+                }
+                result.push(page.clone());
+                self.ordering_set.iter().for_each(|(key, value)| {
+                    if key == page {
+                        value.iter().for_each(|v| match dependencies.entry(*v) {
+                            Entry::Occupied(mut e) => {
+                                *e.get_mut() -= 1;
+                            }
+                            _ => {}
+                        });
+                    }
+                });
+            })
+        }
+
+        Some(result)
+    }
+
     pub fn validate(&self, print: &Vec<i32>) -> Option<Vec<i32>> {
         let mut new_print = print.clone();
         let mut valid = true;
@@ -79,7 +150,7 @@ pub fn part2(path: &str) -> i32 {
 
     let reordered_prints: Vec<Vec<i32>> = prints
         .iter()
-        .filter_map(|print| ordering.validate(&print))
+        .filter_map(|print| ordering.validate_topololgical(&print))
         .collect();
 
     let result: i32 = reordered_prints
