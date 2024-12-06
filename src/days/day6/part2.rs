@@ -66,24 +66,6 @@ pub fn part2(path: &str) -> u32 {
         } else {
             if causes_loop(&initial_pos, &pos, &map) && pos != initial_pos {
                 if !boxes.contains(&pos) {
-                    //let box_pos = match dir {
-                    //    Direction::Up => Position {
-                    //        x: pos.x,
-                    //        y: pos.y - 1,
-                    //    },
-                    //    Direction::Down => Position {
-                    //        x: pos.x,
-                    //        y: pos.y + 1,
-                    //    },
-                    //    Direction::Left => Position {
-                    //        x: pos.x - 1,
-                    //        y: pos.y,
-                    //    },
-                    //    Direction::Right => Position {
-                    //        x: pos.x + 1,
-                    //        y: pos.y,
-                    //    },
-                    //};
                     boxes.push(pos);
                 }
             }
