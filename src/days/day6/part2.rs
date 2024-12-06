@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum Direction {
     Up,
@@ -64,8 +62,8 @@ pub fn part2(path: &str) -> u32 {
             dir = dir.get_next_direction();
             pos = starting_pos;
         } else {
-            if causes_loop(&initial_pos, &pos, &map) && pos != initial_pos {
-                if !boxes.contains(&pos) {
+            if !boxes.contains(&pos) {
+                if causes_loop(&initial_pos, &pos, &map) && pos != initial_pos {
                     boxes.push(pos);
                 }
             }
@@ -77,13 +75,11 @@ pub fn part2(path: &str) -> u32 {
 
 fn causes_loop(initial_position: &Position, box_pos: &Position, map: &Vec<Vec<char>>) -> bool {
     let mut pos = initial_position.clone();
-    let mut visited_directions: HashMap<Position, Vec<Direction>> = HashMap::new();
-    visited_directions.insert(pos, vec![Direction::Up]);
 
-    //let mut dir = dir.get_next_direction();
     let mut dir = Direction::Up;
     let width = map[0].len() as isize;
     let height = map.len() as isize;
+    let mut visited = vec![false; map[0].len() * map.len() * 4];
 
     loop {
         let starting_position = pos.clone();
@@ -102,18 +98,13 @@ fn causes_loop(initial_position: &Position, box_pos: &Position, map: &Vec<Vec<ch
             dir = dir.get_next_direction();
             pos = starting_position;
         } else {
-            match visited_directions.get_mut(&pos) {
-                Some(d) => {
-                    if !d.contains(&dir) {
-                        d.push(dir);
-                    } else {
-                        return true;
-                    }
-                }
-                None => {
-                    visited_directions.insert(pos, vec![dir]);
-                }
+            let hash = ((width - 1) * height + (height - 1)) * 4 + 3;
+            visited[hash as usize] = true;
+            let hash = ((pos.x * height + pos.y) * 4 + dir as isize) as usize;
+            if visited[hash] {
+                return true;
             }
+            visited[hash] = true;
         }
     }
 }
