@@ -98,8 +98,6 @@ fn causes_loop(initial_position: &Position, box_pos: &Position, map: &Vec<Vec<ch
             dir = dir.get_next_direction();
             pos = starting_position;
         } else {
-            let hash = ((width - 1) * height + (height - 1)) * 4 + 3;
-            visited[hash as usize] = true;
             let hash = ((pos.x * height + pos.y) * 4 + dir as isize) as usize;
             if visited[hash] {
                 return true;
