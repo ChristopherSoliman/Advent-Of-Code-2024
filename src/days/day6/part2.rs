@@ -46,6 +46,7 @@ pub fn part2(path: &str) -> u32 {
 
     let width = map[0].len() as isize;
     let height = map.len() as isize;
+    let mut visited = vec![false; map[0].len() * map.len()];
 
     loop {
         let starting_pos = pos.clone();
@@ -62,10 +63,15 @@ pub fn part2(path: &str) -> u32 {
             dir = dir.get_next_direction();
             pos = starting_pos;
         } else {
-            if !boxes.contains(&pos) {
-                if causes_loop(&initial_pos, &pos, &map) && pos != initial_pos {
-                    boxes.push(pos);
+            let hash = (pos.x * height + pos.y) as usize;
+            if !visited[hash] {
+                if !boxes.contains(&pos) {
+                    if causes_loop(&initial_pos, &pos, &map) && pos != initial_pos {
+                        boxes.push(pos);
+                    }
                 }
+            } else {
+                visited[hash] = true;
             }
         }
     }
