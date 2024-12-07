@@ -29,12 +29,10 @@ pub fn part1(path: &str) -> u64 {
         })
         .collect();
 
-    println!("{:?}", equations);
-
     let sum = equations
         .iter()
         .filter_map(|equation| {
-            if is_solvable(&equation) {
+            if is_solvable(equation) {
                 return Some(equation.total);
             }
             None
@@ -44,9 +42,20 @@ pub fn part1(path: &str) -> u64 {
 }
 
 fn is_solvable(eq: &Equation) -> bool {
-    let n = eq.components.len();
+    let b: i32 = 2;
+    let n = b.pow(eq.components.len() as u32 - 1);
+
     for i in 0..n {
-        for j in 0..n {}
+        let mut sum: u64 = eq.components[0] as u64;
+        for j in 0..eq.components.len() - 1 {
+            match i & (1 << j) != 0 {
+                true => sum *= eq.components[j + 1] as u64,
+                false => sum += eq.components[j + 1] as u64,
+            }
+        }
+        if sum == eq.total {
+            return true;
+        }
     }
     false
 }
