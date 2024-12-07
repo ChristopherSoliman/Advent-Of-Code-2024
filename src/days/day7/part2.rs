@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Equation {
     pub components: Vec<u32>,
     pub total: u64,
@@ -7,7 +7,7 @@ struct Equation {
 pub fn part2(path: &str) -> u64 {
     let input = std::fs::read_to_string(path).expect("File should be there");
 
-    let mut equations: Vec<Equation> = input
+    let equations: Vec<Equation> = input
         .trim()
         .lines()
         .map(|line| {
@@ -29,22 +29,8 @@ pub fn part2(path: &str) -> u64 {
         })
         .collect();
 
-    //let mut solvable_sum: u64 = 0;
-    //
-    //let unsolvable: Vec<_> = equations
-    //    .iter()
-    //    .filter(|equation| {
-    //        if !is_solvable(&equation) {
-    //            return true;
-    //        } else {
-    //            solvable_sum += equation.total;
-    //        }
-    //        false
-    //    })
-    //    .collect();
-
     let unsolvable_sum: u64 = equations
-        .iter_mut()
+        .iter()
         .filter_map(|equation| {
             let total = equation.total.clone();
             if is_solvable(equation) {
@@ -62,22 +48,26 @@ fn concat(a: &u64, b: &u64) -> u64 {
     a * cb.pow(b.to_string().len() as u32) as u64 + b
 }
 
-//Non brute force WIP
-fn is_solvable(eq: &mut Equation) -> bool {
+//Non brute force
+fn is_solvable(eq: &Equation) -> bool {
     if eq.components.len() == 1 {
         return eq.components[0] as u64 == eq.total;
     }
 
-    let last = eq.components.pop().unwrap() as u64;
+    let last = *eq.components.last().unwrap() as u64;
     if eq.total % last == 0 {
+        let mut eq = eq.clone();
+        eq.components.pop().unwrap();
         eq.total /= last;
-        if is_solvable(eq) {
+        if is_solvable(&eq) {
             return true;
         }
     }
     if eq.total > last {
+        let mut eq = eq.clone();
+        eq.components.pop().unwrap();
         eq.total -= last;
-        if is_solvable(eq) {
+        if is_solvable(&eq) {
             return true;
         }
     }
@@ -86,8 +76,10 @@ fn is_solvable(eq: &mut Equation) -> bool {
     let last_s = last.to_string();
 
     if total_s.len() > last_s.len() && total_s[(total_s.len() - last_s.len())..] == last_s {
+        let mut eq = eq.clone();
+        eq.components.pop().unwrap();
         eq.total = total_s[..(total_s.len() - last_s.len())].parse().unwrap();
-        if is_solvable(eq) {
+        if is_solvable(&eq) {
             return true;
         }
     }
@@ -95,8 +87,8 @@ fn is_solvable(eq: &mut Equation) -> bool {
     false
 }
 
-//Brute force working
-fn is_solvable_concat(eq: &Equation) -> bool {
+//Brute force
+fn is_solvable_force(eq: &Equation) -> bool {
     let b: i32 = 2;
     let n = b.pow(eq.components.len() as u32 - 1);
 
