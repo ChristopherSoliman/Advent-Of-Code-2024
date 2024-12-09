@@ -57,36 +57,29 @@ pub fn part1(path: &str) -> u64 {
 
             for i in 0..disk.len() {
                 if let BlockType::Empty(empty) = disk[i] {
-                    disk.remove(i);
-                    if (block.length - processed) < empty.length {
+                    if empty.length > 0 {
+                        disk.remove(i);
+                        let to_process = std::cmp::min(block.length - processed, empty.length);
                         disk.insert(
                             i,
                             BlockType::Filled(Block {
                                 id: block.id,
                                 start: empty.start,
-                                length: block.length - processed,
+                                length: to_process,
                             }),
                         );
 
-                        disk.insert(
-                            i + 1,
-                            BlockType::Empty(Space {
-                                start: empty.start + block.length - processed,
-                                length: empty.length - (block.length - processed),
-                            }),
-                        );
-                        processed = block.length;
-                        break;
-                    } else {
-                        disk.insert(
-                            i,
-                            BlockType::Filled(Block {
-                                id: block.id,
-                                start: empty.start,
-                                length: empty.length,
-                            }),
-                        );
-                        processed += empty.length;
+                        if empty.length - to_process > 0 {
+                            disk.insert(
+                                i + 1,
+                                BlockType::Empty(Space {
+                                    start: empty.start + to_process,
+                                    length: empty.length - to_process,
+                                }),
+                            );
+                        }
+                        processed += to_process;
+
                         if processed == block.length {
                             break;
                         }
@@ -107,16 +100,13 @@ pub fn part1(path: &str) -> u64 {
     }
 
     disk.iter()
-        .filter_map(|d| {
-            if let BlockType::Filled(b) = d {
-                return Some(b);
+        .map(|d| {
+            if let BlockType::Filled(block) = d {
+                return (block.start..(block.start + block.length))
+                    .map(|v| v as u64 * block.id as u64)
+                    .sum::<u64>();
             }
-            None
+            0
         })
-        .map(|block| {
-            (block.start..(block.start + block.length))
-                .map(|v| v as u64 * block.id as u64)
-                .sum::<u64>()
-        })
-        .sum()
+        .sum::<u64>()
 }
