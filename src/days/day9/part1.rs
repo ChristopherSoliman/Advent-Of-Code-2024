@@ -2,13 +2,13 @@
 struct Block {
     id: usize,
     start: usize,
-    end: usize,
+    length: usize,
 }
 
 #[derive(Debug, Clone, Copy)]
 struct Space {
     start: usize,
-    end: usize,
+    length: usize,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -21,90 +21,84 @@ pub fn part1(path: &str) -> u64 {
     let input = std::fs::read_to_string(path).expect("File should be there");
 
     let mut id = 0;
-    let mut free_space = false;
     let mut cursor = 0;
 
     let mut disk: Vec<BlockType> = input
         .trim()
         .chars()
-        .filter_map(|data| {
-            let length: usize = data.to_string().parse().expect("Couldn't parse length");
+        .enumerate()
+        .filter_map(|(i, length)| {
+            let length: usize = length.to_string().parse().expect("Couldn't parse length");
             if length == 0 {
-                free_space = !free_space;
                 return None;
             }
             let data_type: BlockType;
-            if !free_space {
+            if i % 2 == 0 {
                 data_type = BlockType::Filled(Block {
                     id,
                     start: cursor,
-                    end: cursor + length - 1,
+                    length,
                 });
                 id += 1;
             } else {
                 data_type = BlockType::Empty(Space {
                     start: cursor,
-                    end: cursor + length - 1,
+                    length,
                 });
             }
-
             cursor += length;
-            free_space = !free_space;
             return Some(data_type);
         })
         .collect();
 
     while let Some(data) = disk.pop() {
         if let BlockType::Filled(block) = data {
-            let n = block.end - block.start + 1;
             let mut processed = 0;
 
             for i in 0..disk.len() {
                 if let BlockType::Empty(empty) = disk[i] {
-                    let space = empty.end - empty.start + 1;
-                    if (n - processed) < space {
-                        disk.remove(i);
+                    disk.remove(i);
+                    if (block.length - processed) < empty.length {
                         disk.insert(
                             i,
                             BlockType::Filled(Block {
                                 id: block.id,
                                 start: empty.start,
-                                end: empty.start + (n - processed) - 1,
+                                length: block.length - processed,
                             }),
                         );
 
                         disk.insert(
                             i + 1,
                             BlockType::Empty(Space {
-                                start: empty.start + n - processed,
-                                end: empty.end,
+                                start: empty.start + block.length - processed,
+                                length: empty.length - (block.length - processed),
                             }),
                         );
-                        processed = n;
+                        processed = block.length;
                         break;
                     } else {
-                        disk.remove(i);
                         disk.insert(
                             i,
                             BlockType::Filled(Block {
                                 id: block.id,
                                 start: empty.start,
-                                end: empty.end,
+                                length: empty.length,
                             }),
                         );
-                        processed += space;
-                        if processed == n {
+                        processed += empty.length;
+                        if processed == block.length {
                             break;
                         }
                     }
                 }
             }
-            if processed != n {
+            if processed != block.length {
                 if let Some(BlockType::Filled(last)) = disk.last() {
                     disk.push(BlockType::Filled(Block {
                         id: block.id,
-                        start: last.end + 1,
-                        end: last.end + (n - processed),
+                        start: last.start + last.length,
+                        length: block.length - processed,
                     }));
                 }
                 break;
@@ -120,7 +114,7 @@ pub fn part1(path: &str) -> u64 {
             None
         })
         .map(|block| {
-            (block.start..=block.end)
+            (block.start..(block.start + block.length))
                 .map(|v| v as u64 * block.id as u64)
                 .sum::<u64>()
         })
