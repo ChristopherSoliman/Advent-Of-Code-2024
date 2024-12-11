@@ -17,22 +17,32 @@ pub fn part2(path: &str) -> usize {
 
     for _ in 0..BLINKS {
         updates.clear();
-
         for (stone, count) in stones {
             let stone_str = stone.to_string();
             if stone == 0 {
-                *updates.entry(1).or_insert(0) += count;
+                updates
+                    .entry(1)
+                    .and_modify(|v| *v += count)
+                    .or_insert(count);
             } else if stone_str.len() % 2 == 0 {
                 let nums = stone_str.split_at(stone_str.len() / 2);
-                let nums = (nums.0.parse().unwrap(), nums.1.parse().unwrap());
-                *updates.entry(nums.0).or_insert(0) += count;
-                *updates.entry(nums.1).or_insert(0) += count;
+                let (left, right) = (nums.0.parse().unwrap(), nums.1.parse().unwrap());
+                updates
+                    .entry(left)
+                    .and_modify(|v| *v += count)
+                    .or_insert(count);
+                updates
+                    .entry(right)
+                    .and_modify(|v| *v += count)
+                    .or_insert(count);
             } else {
-                *updates.entry(stone * 2024).or_insert(0) += count;
+                updates
+                    .entry(stone * 2024)
+                    .and_modify(|v| *v += count)
+                    .or_insert(count);
             }
         }
         stones = updates.clone();
     }
-
-    stones.iter().fold(0, |acc, (_, val)| acc + val)
+    stones.values().sum()
 }
