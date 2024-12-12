@@ -73,8 +73,8 @@ fn dfs_fence(map: &Vec<Vec<char>>, root: (usize, usize), seen: &mut Vec<bool>) -
         .iter()
         .map(|(plot, neighbours)| {
             match neighbours.len() {
-                0 => return 4,
-                1 => return 2,
+                0 => 4,
+                1 => 2,
                 2 => {
                     // Opposites
                     if (neighbours.contains(&(0, -1)) && neighbours.contains(&(0, 1)))
@@ -85,12 +85,13 @@ fn dfs_fence(map: &Vec<Vec<char>>, root: (usize, usize), seen: &mut Vec<bool>) -
 
                     // Corner
                     let (ci, cj) = (
-                        plot.0 as i32 + neighbours[0].0 + neighbours[1].0,
-                        plot.1 as i32 + neighbours[0].1 + neighbours[1].1,
+                        plot.0 as i32 + neighbours.iter().map(|(i, _)| i).sum::<i32>(),
+                        plot.1 as i32 + neighbours.iter().map(|(_, j)| j).sum::<i32>(),
                     );
                     if map[ci as usize][cj as usize] != region_type {
                         return 2;
                     }
+
                     1
                 }
                 3 => {
@@ -101,10 +102,9 @@ fn dfs_fence(map: &Vec<Vec<char>>, root: (usize, usize), seen: &mut Vec<bool>) -
                                 neighbours[i].0 + neighbours[j].0 + plot.0 as i32,
                                 neighbours[i].1 + neighbours[j].1 + plot.1 as i32,
                             );
-                            if ci == plot.0 as i32 && cj == plot.1 as i32 {
-                                continue;
-                            }
-                            if map[ci as usize][cj as usize] != region_type {
+                            if (ci as usize, cj as usize) != *plot
+                                && map[ci as usize][cj as usize] != region_type
+                            {
                                 c += 1;
                             }
                         }
