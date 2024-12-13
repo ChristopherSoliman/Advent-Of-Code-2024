@@ -1,17 +1,16 @@
 pub fn part1(path: &str) -> u64 {
     let input = std::fs::read_to_string(path).expect("File should be there");
-    let lines = input.trim().lines().collect::<Vec<_>>();
+    let mut lines = input.trim().lines();
 
-    let mut i = 0;
     let mut result = 0;
 
-    while i <= lines.len() - 3 {
-        let (ax, ay) = parse_line(lines[i]);
-        let (bx, by) = parse_line(lines[i + 1]);
-        let (tx, ty) = parse_line(lines[i + 2]);
+    while let Some(line) = lines.next() {
+        let (ax, ay) = parse_line(line);
+        let (bx, by) = parse_line(lines.next().unwrap());
+        let (tx, ty) = parse_line(lines.next().unwrap());
         let s = solve(ax, ay, bx, by, tx, ty);
         result += s;
-        i += 4;
+        lines.next();
     }
     result
 }
