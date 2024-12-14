@@ -34,15 +34,16 @@ pub fn part1(path: &str) -> u64 {
         let x_f = (x0 + vx * TIME as i32).rem_euclid(WIDTH as i32);
         let y_f = (y0 + vy * TIME as i32).rem_euclid(HEIGHT as i32);
 
-        if x_f < m_x && y_f < m_y {
-            quads[0] += 1;
-        } else if x_f > m_x && y_f < m_y {
-            quads[1] += 1;
-        } else if x_f < m_x && y_f > m_y {
-            quads[2] += 1;
-        } else if x_f > m_x && y_f > m_y {
-            quads[3] += 1;
+        if x_f == m_x || y_f == m_y {
+            return;
         }
+
+        match (x_f < m_x, y_f < m_y) {
+            (true, true) => quads[0] += 1,
+            (true, false) => quads[1] += 1,
+            (false, true) => quads[2] += 1,
+            (false, false) => quads[3] += 1,
+        };
     });
 
     quads.iter().product()
