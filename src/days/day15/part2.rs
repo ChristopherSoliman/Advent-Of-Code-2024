@@ -76,16 +76,16 @@ fn move_robot(
     );
 
     match grid[new_pos.0][new_pos.1] {
-        '#' => return pos.clone(),
+        '#' => return *pos,
         '.' => return new_pos,
         '[' | ']' => {
             if let Some(b) = get_boxes(grid, &new_pos, movement) {
                 pushed = b;
             } else {
-                return pos.clone();
+                return *pos;
             }
         }
-        _ => panic!("hit invalid character"),
+        _ => unreachable!("hit invalid character"),
     }
 
     pushed.sort_by(|a, b| compare(a, b, &movement));
@@ -110,7 +110,7 @@ fn compare(a: &(usize, usize), b: &(usize, usize), movement: &(i8, i8)) -> Order
         (_, -1) => a.1.cmp(&b.1),
         (1, _) => b.0.cmp(&a.0),
         (-1, _) => a.0.cmp(&b.0),
-        _ => panic!("invalid direction"),
+        _ => unreachable!("invalid direction"),
     }
 }
 
