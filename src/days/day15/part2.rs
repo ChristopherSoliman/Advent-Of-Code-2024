@@ -90,7 +90,7 @@ fn move_robot(
 
     pushed.sort_by(|a, b| compare(a, b, &movement));
 
-    for (i, j) in pushed.into_iter().rev() {
+    for (i, j) in pushed {
         let (ii, jj) = (
             (i as i32 + movement.0 as i32) as usize,
             (j as i32 + movement.1 as i32) as usize,
@@ -106,10 +106,10 @@ fn move_robot(
 
 fn compare(a: &(usize, usize), b: &(usize, usize), movement: &(i8, i8)) -> Ordering {
     match movement {
-        (_, 1) => a.1.cmp(&b.1),
-        (_, -1) => b.1.cmp(&a.1),
-        (1, _) => a.0.cmp(&b.0),
-        (-1, _) => b.0.cmp(&a.0),
+        (_, 1) => b.1.cmp(&a.1),
+        (_, -1) => a.1.cmp(&b.1),
+        (1, _) => b.0.cmp(&a.0),
+        (-1, _) => a.0.cmp(&b.0),
         _ => panic!("invalid direction"),
     }
 }
