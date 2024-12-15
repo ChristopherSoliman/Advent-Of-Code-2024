@@ -40,7 +40,6 @@ pub fn part1(path: &str) -> u64 {
     let width = grid[0].len();
 
     let mut sum: u64 = 0;
-
     for i in 0..height {
         for j in 0..width {
             if grid[i][j] == 'O' {
@@ -48,7 +47,6 @@ pub fn part1(path: &str) -> u64 {
             }
         }
     }
-
     sum
 }
 

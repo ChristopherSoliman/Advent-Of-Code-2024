@@ -119,40 +119,30 @@ fn get_boxes(
     box_pos: &(usize, usize),
     movement: (i8, i8),
 ) -> Option<Vec<(usize, usize)>> {
+    // Always refer to box from `[`
     let box_pos = match grid[box_pos.0][box_pos.1] {
         '[' => *box_pos,
         ']' => (box_pos.0, box_pos.1 - 1),
-        _ => panic!("hit invalid character"),
+        other => panic!("expected a box ('[' or ']') but got:'{}'", other),
     };
-
-    let i = (box_pos.0 as i32 + movement.0 as i32) as usize;
-    let mut j = (box_pos.1 as i32 + movement.1 as i32) as usize;
-    if movement.1 == 1 {
-        j += 1;
-    }
-
-    if movement.0 != 0 {
-        if grid[i][j] == '.' && grid[i][j + 1] == '.' {
-            return Some(vec![box_pos]);
-        }
-    } else {
-        if grid[i][j] == '.' {
-            return Some(vec![box_pos]);
-        }
-    }
-
-    if grid[i][j] == '#' {
-        return None;
-    }
-    if movement.0 != 0 {
-        if grid[i][j + 1] == '#' {
-            return None;
-        }
-    }
 
     let mut boxes: Vec<(usize, usize)> = vec![box_pos];
 
-    // If moving vertically, the side of the box being examined could be empty
+    let i = (box_pos.0 as i32 + movement.0 as i32) as usize;
+    let j = match movement.1 {
+        1 => (box_pos.1 as i32 + movement.1 as i32 + 1) as usize,
+        _ => (box_pos.1 as i32 + movement.1 as i32) as usize,
+    };
+
+    match movement.0 {
+        0 if grid[i][j] == '.' => return Some(boxes),
+        0 if grid[i][j] == '#' => return None,
+        _ if grid[i][j] == '.' && grid[i][j + 1] == '.' => return Some(boxes),
+        _ if grid[i][j] == '#' || grid[i][j + 1] == '#' => return None,
+        _ => {}
+    }
+
+    // This check could only be false if moving vertically
     if grid[i][j] != '.' {
         if let Some(mut b) = get_boxes(grid, &(i, j), movement) {
             boxes.append(&mut b);
@@ -161,7 +151,7 @@ fn get_boxes(
         }
     }
 
-    // If moving vertically,check the other side of the box
+    // If moving vertically, check the other side of the box
     if movement.0 != 0 {
         if grid[i][j + 1] != '.' {
             if let Some(mut b) = get_boxes(grid, &(i, j + 1), movement) {
