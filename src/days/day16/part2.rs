@@ -8,7 +8,7 @@ struct Point {
 
 const DIRECTIONS: [(i8, i8); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
-pub fn part1(path: &str) -> u32 {
+pub fn part2(path: &str) -> u32 {
     let input = std::fs::read_to_string(path).expect("File should be there");
 
     let mut start = Point { col: 0, row: 0 };
@@ -59,6 +59,7 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
     let height = grid.len();
     let width = grid[0].len();
     let mut dist: HashMap<(Point, usize), u32> = HashMap::new();
+    let mut prev: HashMap<(Point, usize), Vec<(Point, usize)>> = HashMap::new();
     let mut q: Vec<(Point, usize)> = Vec::new();
     let mut seen: HashSet<(Point, usize)> = HashSet::new();
 
@@ -67,6 +68,7 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
             let point = Point { row: i, col: j };
             for i in 0..4 {
                 dist.insert((point, i), u32::MAX);
+                prev.insert((point, i), vec![]);
             }
         }
     }
@@ -96,19 +98,40 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
             if seen.contains(&(next, new_dir_i)) {
                 continue;
             }
-            if *dist.get(&(next, new_dir_i)).unwrap() > new_dist {
-                q.push((next, new_dir_i));
-                dist.insert((next, new_dir_i), new_dist);
+            if *dist.get(&(next, new_dir_i)).unwrap() >= new_dist {
+                if *dist.get(&(next, new_dir_i)).unwrap() == new_dist {
+                    prev.entry((next, new_dir_i))
+                        .and_modify(|v| v.push((point, dir)));
+                } else {
+                    q.push((next, new_dir_i));
+                    dist.insert((next, new_dir_i), new_dist);
+                    prev.insert((next, new_dir_i), vec![(point, dir)]);
+                }
             }
         }
     }
 
     let mut min = u32::MAX;
+    let mut min_i: usize = 0;
+
     for i in 0..4 {
         let distance = dist.get(&(*end, i)).unwrap();
         if *distance < min {
             min = *distance;
+            min_i = i;
         }
     }
-    min
+
+    let mut q: Vec<(Point, usize)> = Vec::new();
+    let mut seen: HashSet<Point> = HashSet::new();
+    q.append(prev.get(&(*end, min_i)).unwrap().clone().as_mut());
+
+    while let Some(prev_item) = q.pop() {
+        q.append(prev.get(&(prev_item)).unwrap().clone().as_mut());
+        if !seen.contains(&prev_item.0) {
+            seen.insert(prev_item.0);
+        }
+    }
+
+    seen.len() as u32 + 1
 }
