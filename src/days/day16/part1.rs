@@ -62,15 +62,6 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
     let mut q: Vec<(Point, usize)> = Vec::new();
     let mut seen: HashSet<(Point, usize)> = HashSet::new();
 
-    for i in 0..height {
-        for j in 0..width {
-            let point = Point { row: i, col: j };
-            for i in 0..4 {
-                dist.insert((point, i), u32::MAX);
-            }
-        }
-    }
-
     q.push((*start, 0));
     dist.insert((*start, 0), 0);
 
@@ -96,7 +87,7 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
             if seen.contains(&(next, new_dir_i)) {
                 continue;
             }
-            if *dist.get(&(next, new_dir_i)).unwrap() > new_dist {
+            if dist.get(&(next, new_dir_i)).or(Some(&u32::MAX)) > Some(&new_dist) {
                 q.push((next, new_dir_i));
                 dist.insert((next, new_dir_i), new_dist);
             }

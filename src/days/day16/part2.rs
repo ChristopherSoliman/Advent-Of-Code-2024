@@ -63,16 +63,6 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
     let mut q: Vec<(Point, usize)> = Vec::new();
     let mut seen: HashSet<(Point, usize)> = HashSet::new();
 
-    for i in 0..height {
-        for j in 0..width {
-            let point = Point { row: i, col: j };
-            for i in 0..4 {
-                dist.insert((point, i), u32::MAX);
-                prev.insert((point, i), vec![]);
-            }
-        }
-    }
-
     q.push((*start, 0));
     dist.insert((*start, 0), 0);
 
@@ -98,10 +88,13 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
             if seen.contains(&(next, new_dir_i)) {
                 continue;
             }
-            if *dist.get(&(next, new_dir_i)).unwrap() >= new_dist {
-                if *dist.get(&(next, new_dir_i)).unwrap() == new_dist {
+
+            let old_dist = dist.get(&(next, new_dir_i)).or(Some(&u32::MAX)).unwrap();
+            if *old_dist >= new_dist {
+                if *old_dist == new_dist {
                     prev.entry((next, new_dir_i))
-                        .and_modify(|v| v.push((point, dir)));
+                        .or_insert(vec![])
+                        .push((point, dir));
                 } else {
                     q.push((next, new_dir_i));
                     dist.insert((next, new_dir_i), new_dist);
@@ -127,7 +120,9 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
     q.append(prev.get(&(*end, min_i)).unwrap().clone().as_mut());
 
     while let Some(prev_item) = q.pop() {
-        q.append(prev.get(&(prev_item)).unwrap().clone().as_mut());
+        if let Some(p) = prev.get(&(prev_item)) {
+            q.append(p.clone().as_mut());
+        }
         if !seen.contains(&prev_item.0) {
             seen.insert(prev_item.0);
         }
