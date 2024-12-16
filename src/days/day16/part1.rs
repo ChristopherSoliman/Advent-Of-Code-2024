@@ -56,8 +56,6 @@ fn get_minimum(
 }
 
 fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
-    let height = grid.len();
-    let width = grid[0].len();
     let mut dist: HashMap<(Point, usize), u32> = HashMap::new();
     let mut q: Vec<(Point, usize)> = Vec::new();
     let mut seen: HashSet<(Point, usize)> = HashSet::new();
