@@ -35,37 +35,17 @@ pub fn part2(path: &str) -> u32 {
     find_path(&grid, &start, &end)
 }
 
-fn get_minimum(
-    unvisited: &Vec<(Point, usize)>,
-    distances: &HashMap<(Point, usize), u32>,
-) -> Option<(usize, u32)> {
-    let mut min_point: Option<usize> = None;
-    let mut min = u32::MAX;
-    for i in 0..unvisited.len() {
-        let (point, dir) = unvisited[i];
-        let distance = distances.get(&(point, dir)).unwrap();
-        if *distance < min {
-            min = *distance;
-            min_point = Some(i);
-        }
-    }
-    if let Some(mp) = min_point {
-        return Some((mp, min));
-    }
-    None
-}
-
 fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
     let mut dist: HashMap<(Point, usize), u32> = HashMap::new();
     let mut prev: HashMap<(Point, usize), Vec<(Point, usize)>> = HashMap::new();
-    let mut q: Vec<(Point, usize)> = Vec::new();
+    let mut q: Vec<(Point, usize, u32)> = Vec::new();
     let mut seen: HashSet<(Point, usize)> = HashSet::new();
 
-    q.push((*start, 0));
+    q.push((*start, 0, 0));
     dist.insert((*start, 0), 0);
 
-    while let Some((i, current_dist)) = get_minimum(&q, &dist) {
-        let (point, dir) = q.remove(i);
+    while !q.is_empty() {
+        let (point, dir, current_dist) = q.remove(0);
         seen.insert((point, dir));
         for i in 0..3 {
             let new_dir_i = (dir as i32 + i as i32 - 1).rem_euclid(4) as usize;
@@ -94,12 +74,13 @@ fn find_path(grid: &Vec<Vec<char>>, start: &Point, end: &Point) -> u32 {
                         .or_insert(vec![])
                         .push((point, dir));
                 } else {
-                    q.push((next, new_dir_i));
+                    q.push((next, new_dir_i, new_dist));
                     dist.insert((next, new_dir_i), new_dist);
                     prev.insert((next, new_dir_i), vec![(point, dir)]);
                 }
             }
         }
+        q.sort_by_key(|v| v.2);
     }
 
     let mut min = u32::MAX;
