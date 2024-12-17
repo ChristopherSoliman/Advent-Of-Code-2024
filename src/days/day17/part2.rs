@@ -23,19 +23,7 @@ impl Input {
 pub fn part2(path: &str) -> u64 {
     let input = std::fs::read_to_string(path).expect("File should be there");
 
-    let (reg_in, inst) = input.trim().split_once("\r\n\r\n").expect("Should split");
-
-    let mut reg: [u64; 3] = [0; 3];
-
-    for (i, line) in reg_in.trim().lines().enumerate() {
-        reg[i] = line
-            .split_once(':')
-            .unwrap()
-            .1
-            .trim()
-            .parse()
-            .expect("Couldn't parse int");
-    }
+    let (_, inst) = input.trim().split_once("\r\n\r\n").expect("Should split");
 
     let inst = inst
         .trim()
@@ -47,6 +35,7 @@ pub fn part2(path: &str) -> u64 {
         .chars()
         .collect::<Vec<_>>();
 
+    let mut reg: [u64; 3] = [0; 3];
     reg[0] = 0;
     reg[1] = 0;
     reg[2] = 0;
