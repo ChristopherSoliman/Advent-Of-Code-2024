@@ -35,7 +35,7 @@ pub fn part2(path: &str) -> u64 {
         .chars()
         .collect::<Vec<_>>();
 
-    let mut reg: [u64; 3] = [0; 3];
+    let mut reg = [0, 0, 0];
     reg[0] = 0;
     reg[1] = 0;
     reg[2] = 0;
