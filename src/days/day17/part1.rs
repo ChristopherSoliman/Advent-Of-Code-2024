@@ -79,8 +79,8 @@ fn execute(inst_pairs: &Vec<(u8, Input)>, reg: &mut [u64; 3]) -> Vec<u8> {
     while cursor < inst_pairs.len() {
         let pair = &inst_pairs[cursor];
         match pair.0 {
-            0 => reg[0] = reg[0] >> pair.1.get_value(reg),
-            1 => reg[1] = reg[1] ^ pair.1.get_value(reg),
+            0 => reg[0] >>= pair.1.get_value(reg),
+            1 => reg[1] ^= pair.1.get_value(reg),
             2 => reg[1] = pair.1.get_value(reg) % 8,
             3 => {
                 if reg[0] != 0 {
@@ -88,7 +88,7 @@ fn execute(inst_pairs: &Vec<(u8, Input)>, reg: &mut [u64; 3]) -> Vec<u8> {
                     continue;
                 }
             }
-            4 => reg[1] = reg[1] ^ reg[2],
+            4 => reg[1] ^= reg[2],
             5 => out.push((pair.1.get_value(reg) % 8) as u8),
             6 => reg[1] = reg[0] >> pair.1.get_value(reg),
             7 => reg[2] = reg[0] >> pair.1.get_value(reg),
