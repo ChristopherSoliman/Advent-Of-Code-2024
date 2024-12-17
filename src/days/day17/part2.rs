@@ -36,9 +36,6 @@ pub fn part2(path: &str) -> u64 {
         .collect::<Vec<_>>();
 
     let mut reg = [0, 0, 0];
-    reg[0] = 0;
-    reg[1] = 0;
-    reg[2] = 0;
 
     let mut program: Vec<u8> = Vec::new();
     let mut inst_pairs: Vec<(u8, Input)> = Vec::new();
