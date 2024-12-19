@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-const MAX_TOWEL_LENGTH: usize = 10;
+const MAX_TOWEL_LENGTH: usize = 8;
 
 pub fn index(char: &char) -> usize {
     match char {
@@ -22,7 +22,7 @@ pub fn part1(path: &str) -> u32 {
         let ts = line.split(", ");
         for t in ts {
             let c = t.chars().next().unwrap();
-            for i in t.len()..MAX_TOWEL_LENGTH {
+            for i in (t.len() - 1)..MAX_TOWEL_LENGTH {
                 towels[index(&c)][i].push(t)
             }
         }
@@ -36,10 +36,14 @@ pub fn part1(path: &str) -> u32 {
         .count() as u32
 }
 
-fn dfs(target: &str, towels: &[[Vec<&str>; 10]; 5], cache: &mut HashMap<String, bool>) -> bool {
+fn dfs(
+    target: &str,
+    towels: &[[Vec<&str>; MAX_TOWEL_LENGTH]; 5],
+    cache: &mut HashMap<String, bool>,
+) -> bool {
     let s_char = target.chars().next().unwrap();
-    let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH - 1);
-    let mut q = towels[index(&s_char)][length].to_owned();
+    let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH);
+    let mut q = towels[index(&s_char)][length - 1].to_owned();
 
     while !q.is_empty() {
         let towel = q.pop().unwrap();
@@ -54,9 +58,8 @@ fn dfs(target: &str, towels: &[[Vec<&str>; 10]; 5], cache: &mut HashMap<String, 
         if let Some(result) = cache.get(&new_target.to_string()) {
             if *result {
                 return true;
-            } else {
-                continue;
             }
+            continue;
         }
         if dfs(new_target, towels, cache) {
             cache.insert(new_target.to_string(), true);

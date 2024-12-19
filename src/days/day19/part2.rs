@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-const MAX_TOWEL_LENGTH: usize = 10;
+const MAX_TOWEL_LENGTH: usize = 8;
 
 pub fn index(char: &char) -> usize {
     match char {
@@ -22,7 +22,7 @@ pub fn part2(path: &str) -> u64 {
         let ts = line.split(", ");
         for t in ts {
             let c = t.chars().next().unwrap();
-            for i in t.len()..MAX_TOWEL_LENGTH {
+            for i in (t.len() - 1)..MAX_TOWEL_LENGTH {
                 towels[index(&c)][i].push(t)
             }
         }
@@ -36,10 +36,14 @@ pub fn part2(path: &str) -> u64 {
         .sum::<u64>() as u64
 }
 
-fn dfs(target: &str, towels: &[[Vec<&str>; 10]; 5], cache: &mut HashMap<String, u64>) -> u64 {
+fn dfs(
+    target: &str,
+    towels: &[[Vec<&str>; MAX_TOWEL_LENGTH]; 5],
+    cache: &mut HashMap<String, u64>,
+) -> u64 {
     let s_char = target.chars().next().unwrap();
-    let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH - 1);
-    let mut q = towels[index(&s_char)][length].to_owned();
+    let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH);
+    let mut q = towels[index(&s_char)][length - 1].to_owned();
     let mut count = 0;
 
     while !q.is_empty() {
