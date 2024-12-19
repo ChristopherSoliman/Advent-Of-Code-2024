@@ -29,17 +29,17 @@ pub fn part1(path: &str) -> u32 {
     });
 
     let designs = designs.lines().collect::<Vec<_>>();
-    let mut cache: HashMap<String, bool> = HashMap::new();
+    let mut cache: HashMap<&str, bool> = HashMap::new();
     designs
         .iter()
         .filter(|d| dfs(d, &towels, &mut cache))
         .count() as u32
 }
 
-fn dfs(
-    target: &str,
+fn dfs<'a>(
+    target: &'a str,
     towels: &[[Vec<&str>; MAX_TOWEL_LENGTH]; 5],
-    cache: &mut HashMap<String, bool>,
+    cache: &mut HashMap<&'a str, bool>,
 ) -> bool {
     let s_char = target.chars().next().unwrap();
     let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH);
@@ -55,17 +55,17 @@ fn dfs(
         }
 
         let new_target = &target[towel.len()..];
-        if let Some(result) = cache.get(&new_target.to_string()) {
+        if let Some(result) = cache.get(&new_target) {
             if *result {
                 return true;
             }
             continue;
         }
         if dfs(new_target, towels, cache) {
-            cache.insert(new_target.to_string(), true);
+            cache.insert(new_target, true);
             return true;
         }
-        cache.insert(new_target.to_string(), false);
+        cache.insert(new_target, false);
     }
     false
 }
