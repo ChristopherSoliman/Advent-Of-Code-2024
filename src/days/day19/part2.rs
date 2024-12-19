@@ -32,40 +32,28 @@ pub fn part2(path: &str) -> u64 {
     let mut cache: HashMap<&str, u64> = HashMap::new();
     designs
         .iter()
-        .map(|d| dfs(d, &towels, &mut cache))
+        .map(|d| find_combinations(d, &towels, &mut cache))
         .sum::<u64>() as u64
 }
 
-fn dfs<'a>(
+fn find_combinations<'a>(
     target: &'a str,
     towels: &[[Vec<&str>; MAX_TOWEL_LENGTH]; 5],
     cache: &mut HashMap<&'a str, u64>,
 ) -> u64 {
-    let s_char = target.chars().next().unwrap();
-    let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH);
-    let mut q = towels[index(&s_char)][length - 1].to_owned();
-    let mut count = 0;
-
-    while !q.is_empty() {
-        let towel = q.pop().unwrap();
-        if *target == *towel {
-            count += 1;
-            continue;
+    if cache.get(&target).is_none() {
+        if target == "" {
+            return 1;
         }
-        if target[0..towel.len()] != *towel || target.len() == towel.len() {
-            continue;
+        let s_char = target.chars().next().unwrap();
+        let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH);
+        let mut result = 0;
+        for towel in towels[index(&s_char)][length - 1].to_owned() {
+            if target.starts_with(towel) {
+                result += find_combinations(&target[towel.len()..], towels, cache);
+            }
         }
-
-        let new_target = &target[towel.len()..];
-        if let Some(result) = cache.get(&new_target) {
-            count += result;
-            continue;
-        }
-        let new_count = dfs(new_target, towels, cache);
-        if new_count > 0 {
-            count += new_count;
-        }
-        cache.insert(new_target, new_count);
+        cache.insert(target, result);
     }
-    count
+    *cache.get(&target).unwrap()
 }

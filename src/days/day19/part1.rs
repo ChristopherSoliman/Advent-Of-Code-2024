@@ -32,40 +32,31 @@ pub fn part1(path: &str) -> u32 {
     let mut cache: HashMap<&str, bool> = HashMap::new();
     designs
         .iter()
-        .filter(|d| dfs(d, &towels, &mut cache))
+        .filter(|d| is_possible(d, &towels, &mut cache))
         .count() as u32
 }
 
-fn dfs<'a>(
+fn is_possible<'a>(
     target: &'a str,
     towels: &[[Vec<&str>; MAX_TOWEL_LENGTH]; 5],
     cache: &mut HashMap<&'a str, bool>,
 ) -> bool {
-    let s_char = target.chars().next().unwrap();
-    let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH);
-    let mut q = towels[index(&s_char)][length - 1].to_owned();
-
-    while !q.is_empty() {
-        let towel = q.pop().unwrap();
-        if *target == *towel {
+    if cache.get(&target).is_none() {
+        if target == "" {
             return true;
         }
-        if target[0..towel.len()] != *towel || target.len() == towel.len() {
-            continue;
-        }
-
-        let new_target = &target[towel.len()..];
-        if let Some(result) = cache.get(&new_target) {
-            if *result {
-                return true;
+        let s_char = target.chars().next().unwrap();
+        let length = std::cmp::min(target.len(), MAX_TOWEL_LENGTH);
+        let mut result = false;
+        for towel in towels[index(&s_char)][length - 1].to_owned() {
+            if target.starts_with(towel) {
+                if is_possible(&target[towel.len()..], towels, cache) {
+                    result = true;
+                    break;
+                }
             }
-            continue;
         }
-        if dfs(new_target, towels, cache) {
-            cache.insert(new_target, true);
-            return true;
-        }
-        cache.insert(new_target, false);
+        cache.insert(target, result);
     }
-    false
+    *cache.get(&target).unwrap()
 }
