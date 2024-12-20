@@ -87,6 +87,7 @@ fn base_path(grid: &Vec<Vec<char>>, source: &Point, target: &Point) -> Vec<Point
     path.reverse();
     path
 }
+
 fn get_manhattan_neighbours(path: &Vec<Point>, pos: &usize) -> u32 {
     path.iter()
         .enumerate()

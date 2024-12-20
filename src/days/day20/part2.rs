@@ -96,7 +96,7 @@ fn get_manhattan_neighbours(path: &Vec<Point>, pos: &usize) -> u32 {
             let source = path[*pos];
             let dist = point.col.abs_diff(source.col) + point.row.abs_diff(source.row);
             if dist <= 20 {
-                if j >= TIME_SAVED + *pos + dist {
+                if j >= TIME_SAVED + pos + dist {
                     return Some(());
                 }
             }
