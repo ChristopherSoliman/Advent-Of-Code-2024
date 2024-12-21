@@ -1,114 +1,173 @@
-use std::{
-    collections::{HashMap, HashSet},
-    usize,
-};
-
-#[derive(Debug, Eq, Hash, PartialEq, Copy, Clone)]
-struct Point {
-    row: usize,
-    col: usize,
-}
+use std::collections::{HashMap, HashSet};
 
 const DIRECTIONS: [(i8, i8); 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)];
-const TIME_SAVED: usize = 100;
 
-pub fn part2(path: &str) -> u32 {
+const NUMPAD: [[char; 3]; 4] = [
+    ['7', '8', '9'],
+    ['4', '5', '6'],
+    ['1', '2', '3'],
+    [' ', '0', 'A'],
+];
+const ARROWS: [[char; 3]; 2] = [[' ', '^', 'A'], ['<', 'v', '>']];
+
+pub fn part2(path: &str) -> u64 {
     let input = std::fs::read_to_string(path).expect("File should be there");
-    let mut start = Point { row: 0, col: 0 };
-    let mut end = Point { row: 0, col: 0 };
-
-    let grid: Vec<Vec<char>> = input
-        .trim()
-        .lines()
-        .enumerate()
-        .map(|(row, line)| {
-            let mut grid_line: Vec<char> = line.chars().collect();
-            if let Some(col) = grid_line.iter().position(|c| *c == 'S') {
-                start = Point { row, col };
-                grid_line[col] = '.';
-            }
-            if let Some(col) = grid_line.iter().position(|c| *c == 'E') {
-                end = Point { row, col };
-                grid_line[col] = '.';
-            }
-            grid_line
-        })
-        .collect();
-
-    let base_path = base_path(&grid, &start, &end);
-    get_shortcuts(&base_path)
+    let mut sum = 0;
+    let mut cache: HashMap<(char, char, u8), u64> = HashMap::new();
+    for line in input.lines() {
+        let num = line.strip_suffix("A").unwrap().parse::<u64>().unwrap();
+        sum += num * get_code_length(&line, &mut cache);
+    }
+    sum
 }
 
-fn base_path(grid: &Vec<Vec<char>>, source: &Point, target: &Point) -> Vec<Point> {
-    let height = grid.len();
-    let width = grid[0].len();
+fn map_dir(dir: &(i8, i8)) -> char {
+    match dir {
+        (-1, 0) => '^',
+        (1, 0) => 'v',
+        (0, -1) => '<',
+        (0, 1) => '>',
+        _ => unreachable!(),
+    }
+}
 
-    let mut prev: HashMap<Point, Point> = HashMap::new();
-    let mut q: Vec<(Point, u32)> = Vec::new();
-    let mut seen: HashSet<Point> = HashSet::new();
+fn get_code_length(code: &str, cache: &mut HashMap<(char, char, u8), u64>) -> u64 {
+    let mut result = 0;
+    let code = "A".to_string() + code;
+    for i in 0..code.len() - 1 {
+        let mut code_it = code.chars();
+        let char1 = &code_it.nth(i).unwrap();
+        let char2 = &code_it.next().unwrap();
+        result += get_shortest(char1, char2, cache);
+    }
+    result
+}
 
-    q.push((*source, 0));
+fn get_shortest(num1: &char, num2: &char, cache: &mut HashMap<(char, char, u8), u64>) -> u64 {
+    let mut seen: HashSet<char> = HashSet::new();
+    let mut q: Vec<(char, String)> = Vec::from([(*num1, "".to_string())]);
+    let mut paths: HashMap<char, Vec<String>> = HashMap::new();
+
+    paths.insert(*num1, vec![]);
 
     while !q.is_empty() {
-        let (point, current_time) = q.remove(0);
-        seen.insert(point);
+        let (c, path) = q.remove(0);
+        seen.insert(c);
+        let mut c_pos = (0, 0);
+        NUMPAD.iter().enumerate().for_each(|(i, r)| {
+            if let Some(j) = r.iter().position(|x| *x == c) {
+                c_pos = (i, j);
+            }
+        });
         for dir in DIRECTIONS {
-            let (nr, nc) = (
-                point.row as i32 + dir.0 as i32,
-                point.col as i32 + dir.1 as i32,
-            );
-            if nc < 0 || nc >= width as i32 || nr < 0 || nr >= height as i32 {
+            let (nr, nc) = (c_pos.0 as i32 + dir.0 as i32, c_pos.1 as i32 + dir.1 as i32);
+            if nr < 0 || nr >= 4 || nc < 0 || nc >= 3 || NUMPAD[nr as usize][nc as usize] == ' ' {
+                continue;
+            }
+            let new_c = NUMPAD[nr as usize][nc as usize];
+            if seen.contains(&new_c) {
                 continue;
             }
 
-            let next = Point {
-                row: nr as usize,
-                col: nc as usize,
-            };
-
-            if grid[next.row][next.col] == '#' {
+            let empty = Vec::new();
+            let old_paths = paths.get(&new_c).or(Some(&empty)).unwrap();
+            let new_path = path.clone() + &map_dir(&dir).to_string();
+            if old_paths.len() == 0 || old_paths[0].len() > new_path.len() {
+                paths.insert(new_c, vec![new_path.clone()]);
+            } else if old_paths[0].len() < new_path.len() {
                 continue;
+            } else {
+                paths.entry(new_c).and_modify(|v| v.push(new_path.clone()));
             }
-            if seen.contains(&next) {
-                continue;
-            }
+            q.push((new_c, new_path));
+        }
+        q.sort_by_key(|v| v.1.len());
+    }
 
-            q.push((next, current_time + 1));
-            prev.insert(next, point);
+    paths
+        .get(&num2)
+        .unwrap()
+        .iter()
+        .map(|v| get_lowest_score(v.to_owned() + "A", cache, 25))
+        .min()
+        .unwrap()
+}
+
+fn get_lowest_score(code: String, cache: &mut HashMap<(char, char, u8), u64>, level: u8) -> u64 {
+    let mut result = 0;
+    let code = "A".to_string() + &code;
+
+    for i in 0..code.len() - 1 {
+        let mut code_it = code.chars();
+        let char1 = &code_it.nth(i).unwrap();
+        let char2 = &code_it.next().unwrap();
+        if let Some(res) = cache.get(&(*char1, *char2, level)) {
+            result += res;
+            continue;
+        }
+        if char1 == char2 {
+            result += 1;
+            continue;
+        }
+        let mut seen: HashSet<char> = HashSet::new();
+        let mut q: Vec<(char, String)> = Vec::from([(*char1, "".to_string())]);
+        let mut paths: HashMap<char, Vec<String>> = HashMap::new();
+
+        paths.insert(*char1, vec![]);
+
+        while !q.is_empty() {
+            let (c, path) = q.remove(0);
+            seen.insert(c);
+            let mut c_pos = (0, 0);
+            ARROWS.iter().enumerate().for_each(|(i, r)| {
+                if let Some(j) = r.iter().position(|x| *x == c) {
+                    c_pos = (i, j);
+                }
+            });
+            for dir in DIRECTIONS {
+                let (nr, nc) = (c_pos.0 as i32 + dir.0 as i32, c_pos.1 as i32 + dir.1 as i32);
+                if nr < 0 || nr >= 2 || nc < 0 || nc >= 3 || ARROWS[nr as usize][nc as usize] == ' '
+                {
+                    continue;
+                }
+                let new_c = ARROWS[nr as usize][nc as usize];
+                if seen.contains(&new_c) {
+                    continue;
+                }
+
+                let empty = Vec::new();
+                let old_paths = paths.get(&new_c).or(Some(&empty)).unwrap();
+                let new_path = path.clone() + &map_dir(&dir).to_string();
+                if old_paths.len() == 0 || old_paths[0].len() > new_path.len() {
+                    paths.insert(new_c, vec![new_path.clone()]);
+                } else if old_paths[0].len() < new_path.len() {
+                    continue;
+                } else {
+                    paths.entry(new_c).and_modify(|v| v.push(new_path.clone()));
+                }
+                q.push((new_c, new_path));
+            }
+            q.sort_by_key(|v| v.1.len());
+        }
+
+        if level == 1 {
+            if let Some(path) = paths.get(&char2) {
+                result += path[0].len() as u64 + 1;
+                cache.insert((*char1, *char2, level), path[0].len() as u64 + 1);
+            }
+        } else {
+            let min = paths
+                .get(&char2)
+                .unwrap()
+                .iter()
+                .map(|v| get_lowest_score(v.to_owned() + "A", cache, level - 1))
+                .min()
+                .or(Some(0))
+                .unwrap();
+            cache.insert((*char1, *char2, level), min as u64);
+            result += min;
         }
     }
 
-    let mut cp = target;
-    let mut path: Vec<Point> = Vec::from([*target]);
-    while let Some(pp) = prev.get(cp) {
-        path.push(*pp);
-        cp = pp
-    }
-    path.reverse();
-    path
-}
-
-fn get_manhattan_neighbours(path: &Vec<Point>, pos: &usize) -> u32 {
-    path.iter()
-        .enumerate()
-        .skip(*pos + 1)
-        .filter_map(|(j, point)| {
-            let source = path[*pos];
-            let dist = point.col.abs_diff(source.col) + point.row.abs_diff(source.row);
-            if dist <= 20 {
-                if j >= TIME_SAVED + pos + dist {
-                    return Some(());
-                }
-            }
-            None
-        })
-        .count() as u32
-}
-
-fn get_shortcuts(base_path: &Vec<Point>) -> u32 {
-    base_path
-        .iter()
-        .enumerate()
-        .map(|(i, _)| get_manhattan_neighbours(base_path, &i))
-        .sum::<u32>()
+    result
 }

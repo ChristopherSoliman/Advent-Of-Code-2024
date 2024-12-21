@@ -81,8 +81,6 @@ fn get_shortest(num1: &char, num2: &char) -> u32 {
         q.sort_by_key(|v| v.1.len());
     }
 
-    println!("{}->{}", num1, num2);
-    println!("{:?}", paths.get(&num2).unwrap());
     paths
         .get(&num2)
         .unwrap()
@@ -145,12 +143,9 @@ fn get_lowest_score(code: String, level: u8) -> u32 {
             q.sort_by_key(|v| v.1.len());
         }
 
-        println!("Level: {:?}", level);
-        println!("{} to {}", char1, char2);
-        println!("{:?}", paths.get(&char2).unwrap());
         if level == 1 {
             if let Some(path) = paths.get(&char2) {
-                result += path.len() as u32 + 1;
+                result += path[0].len() as u32 + 1;
             }
         } else {
             result += paths
@@ -159,12 +154,10 @@ fn get_lowest_score(code: String, level: u8) -> u32 {
                 .iter()
                 .map(|v| get_lowest_score(v.to_owned() + "A", level - 1))
                 .min()
-                .or(Some(1))
+                .or(Some(0))
                 .unwrap();
         }
     }
 
-    println!("code: {:?}", code);
-    println!("Result: {:?}", result);
     result
 }
