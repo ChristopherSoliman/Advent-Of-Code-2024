@@ -20,7 +20,7 @@ pub fn part2(path: &str) -> u32 {
     for i in 0..prices.len() {
         prices[i].remove(0);
     }
-    get_sequence_chunks(&diffs, &prices)
+    min_sequence(&diffs, &prices)
 }
 
 fn get_secret(secret: u64, iter: u32) -> Vec<u8> {
@@ -34,7 +34,7 @@ fn get_secret(secret: u64, iter: u32) -> Vec<u8> {
     return prices;
 }
 
-fn get_sequence_chunks(diffs: &Vec<Vec<i8>>, prices: &Vec<Vec<u8>>) -> u32 {
+fn min_sequence(diffs: &Vec<Vec<i8>>, prices: &Vec<Vec<u8>>) -> u32 {
     let mut sequences: HashMap<[i8; 4], u32> = HashMap::new();
     let mut seen: HashSet<[i8; 4]> = HashSet::new();
     let mut max = 0;
