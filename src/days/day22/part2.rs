@@ -1,64 +1,32 @@
-use std::collections::{HashMap, HashSet};
-
 pub fn part2(path: &str) -> u32 {
     let input = std::fs::read_to_string(path).expect("File should be there");
-    let mut prices: Vec<Vec<u8>> = Vec::new();
+
+    let mut scores = vec![0; 0x9CE73];
+
     for line in input.lines() {
-        let secret = line.parse::<u64>().unwrap();
-        prices.push(get_secret(secret, 2000));
-    }
-
-    let diffs = prices
-        .iter()
-        .map(|m| {
-            m.windows(2)
-                .map(|p| p[1] as i8 - p[0] as i8)
-                .collect::<Vec<i8>>()
-        })
-        .collect::<Vec<_>>();
-
-    for i in 0..prices.len() {
-        prices[i].remove(0);
-    }
-    min_sequence(&diffs, &prices)
-}
-
-fn get_secret(secret: u64, iter: u32) -> Vec<u8> {
-    let mut prices: Vec<u8> = Vec::from([(secret % 10) as u8]);
-    let mut new_secret = ((secret * 64) ^ secret) % 16777216;
-    new_secret = ((new_secret / 32) ^ new_secret) % 16777216;
-    new_secret = ((new_secret * 2048) ^ new_secret) % 16777216;
-    if iter != 1 {
-        prices.append(&mut get_secret(new_secret, iter - 1))
-    }
-    return prices;
-}
-
-fn min_sequence(diffs: &Vec<Vec<i8>>, prices: &Vec<Vec<u8>>) -> u32 {
-    let mut sequences: HashMap<[i8; 4], u32> = HashMap::new();
-    let mut seen: HashSet<[i8; 4]> = HashSet::new();
-    let mut max = 0;
-    for i in 0..diffs.len() {
-        seen.clear();
-        for j in 0..diffs[i].len() - 4 {
-            let new = [
-                diffs[i][j],
-                diffs[i][j + 1],
-                diffs[i][j + 2],
-                diffs[i][j + 3],
-            ];
-            if !seen.contains(&new) {
-                let val = prices[i][j + 3];
-                let new_val = sequences
-                    .entry(new)
-                    .and_modify(|v| *v += val as u32)
-                    .or_insert(val as u32);
-                if *new_val > max {
-                    max = *new_val;
-                }
-                seen.insert(new);
+        let mut seen = vec![false; 0x9CE73];
+        let mut secret = line.parse::<u64>().unwrap();
+        let mut prev_score = secret % 10;
+        let mut diff: usize = 0;
+        for i in 0..2000 {
+            secret = get_secret(secret);
+            let score = secret % 10;
+            // 10 + score - prev_score has a max value of 19 (0b10011)
+            // Remove the last 5 bits and add the current unsigned diff
+            diff = ((diff << 5) & 0xFFFF0) | (10 + score as usize - prev_score as usize);
+            if !seen[diff] && i > 3 {
+                seen[diff] = true;
+                scores[diff] += score as u32
             }
+            prev_score = score;
         }
     }
-    max
+
+    *scores.iter().max().unwrap()
+}
+
+fn get_secret(secret: u64) -> u64 {
+    let mut new_secret = ((secret << 6) ^ secret) % 16777216;
+    new_secret = ((new_secret >> 5) ^ new_secret) % 16777216;
+    ((new_secret << 11) ^ new_secret) % 16777216
 }
