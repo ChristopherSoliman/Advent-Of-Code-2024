@@ -36,13 +36,10 @@ fn max_connections<'a>(
 ) -> Vec<&'a str> {
     let mut max_network: Vec<&'a str> = network.clone();
     let conns = connections.get(comp).unwrap();
-    for c in network {
-        if !conns.contains(c) {
-            return max_network;
-        }
+    if !network.iter().all(|c| conns.contains(c)) {
+        return max_network;
     }
     max_network.push(comp);
-
     for conn in conns {
         if network.contains(conn) {
             continue;

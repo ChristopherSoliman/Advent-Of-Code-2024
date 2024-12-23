@@ -22,10 +22,7 @@ pub fn part1(path: &str) -> u32 {
 
         count += con1
             .iter()
-            .filter(|c| {
-                con2.contains(c)
-                    && (pc1.starts_with("t") || pc2.starts_with("t") || c.starts_with("t"))
-            })
+            .filter(|c| con2.contains(c) && [pc1, pc2, c].iter().any(|c| c.starts_with("t")))
             .count();
     }
     count as u32
